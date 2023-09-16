@@ -103,8 +103,3 @@ namespace TelerikManager.Controllers
 
     }
 }
-
-
-
-
-
