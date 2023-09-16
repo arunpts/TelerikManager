@@ -1,0 +1,232 @@
+﻿@model TelerikManager.Models.Manager
+@using TelerikManager.Models;
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CreateModal">
+            Create Manager
+        </button>
+    </div>
+
+<div class="col-md-3 offset-3">
+    <input type="text" class="form-control" id="searchInput" placeholder="Search by Name or Email" />
+</div>
+ </div>
+ <div class="row mb-3">
+ <div class="col-md-3">
+    @(Html.Kendo().DropDownList()
+        .Name("placeFilter")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel("Select a Place")
+        .DataSource(source => source
+            .Read(read => read.Action("ReadPlace", "Managers"))
+        )
+        )
+</div>
+<div class="col-md-3">
+    @(Html.Kendo().AutoComplete()
+        .Name("emailAutoComplete")
+        .Placeholder("Search by Email")
+        .DataTextField("Text")
+        .DataSource(source => source
+            .Read(read => read.Action("ReadEmail", "Managers"))
+        )
+        )
+</div>
+</div>
+@(
+Html.Kendo().Grid<Manager>()
+
+                .Name("grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.Name).Width(100).ClientTemplate("<a href='javascript:void(0)' onclick='editManager(#=ID#)'>#=Name#</a>");
+                    columns.Bound(p => p.Email).Width(100);
+                    columns.Bound(p => p.Phone).Width(100);
+                    columns.Bound(p => p.Place).Width(100);
+                    columns.Bound(p => p.EnteredBy).Width(100);
+                    columns.Bound(p => p.EnteredDate).Width(100);
+                    columns.Bound(p => p.UpdatedBy).Width(100);
+                    columns.Bound(p => p.UpdatedDate).Width(100);
+                    columns.Command(command => 
+                    {
+                        command.Custom("Delete").Text("Delete").Click("confirmDelete");
+                    }).Width(200);
+
+                })
+    .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
+   @*  .Pageable() *@
+    .Scrollable(sc=>sc.Virtual(true))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .ServerOperation(false)
+    @*.Events(events => events.Error("error_handler"))*@
+    .Model(model => model.Id(p => p.ID))
+    .Read(read => read.Action("Read", "Managers").Data("additionalData"))
+    )
+    )
+<div id="rowCount">Total Rows: <span id="rowCountValue">0</span></div>
+
+<!--Create Modal -->
+<div class="modal fade" id="CreateModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @Html.Partial("_CreateModal")
+        </div>
+    </div>
+</div>
+
+
+
+<!--Edit Modal-->
+<div class="modal fade" id="EditModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @Html.Partial("_EditModal")
+        </div>
+    </div>
+</div>
+               
+@*Delete*@
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this manager?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="deleteManager()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    //Create
+    function CreateManager() {
+        $.ajax({
+            url: '@Url.Action("Create", "Managers")',
+            data: { id: id },
+            success: function (data) {
+                $('#CreateModal .modal-content').html(data);
+                $('#CreateModal').modal('show');
+            }
+        });
+    }
+    //Edit
+    function editManager(id) {
+        $.ajax({
+            url: '@Url.Action("Edit", "Managers")',
+            data: { id: id },
+            success: function(data) {
+                $('#EditModal .modal-content').html(data);
+                $('#EditModal').modal('show');
+            }
+        });
+    }
+
+    //Delete
+    var managerToDeleteId;
+
+    function confirmDelete(e) {
+        e.preventDefault();
+        managerToDeleteId = this.dataItem($(e.currentTarget).closest("tr")).ID;
+        $('#deleteConfirmationModal').modal('show');
+    }
+
+    function deleteManager() {
+        
+        $.ajax({
+            url: '@Url.Action("Delete", "Managers")',
+            type: 'POST',
+            data: { id: managerToDeleteId },
+            success: function () {
+              
+                $("#grid").data("kendoGrid").dataSource.read();
+                $('#deleteConfirmationModal').modal('hide');
+            }
+        });
+    }
+    $(document).ready(function () {
+        //row count
+        var grid = $("#grid").data("kendoGrid");
+        // Function to update the row count
+        function updateRowCount() {
+            var rowCount = grid.dataSource.total(); // Get the total number of rows
+            $("#rowCountValue").text(rowCount); // Update the row count value in the HTML element
+        }
+
+        // Hook into Kendo UI grid events to update the row count
+        grid.bind("dataBound", updateRowCount);
+        grid.dataSource.bind("change", updateRowCount);
+    });
+
+    $(document).ready(function () {
+       
+        $("#searchInput").on("keydown", function (e) {
+            if (e.key === "Enter" && $(this).val().trim() !== "") {
+                performSearch();
+            }
+        });
+
+        // Event handler for the DropDownList's change event
+        $("#placeFilter").data("kendoDropDownList").bind("change", function () {
+            performSearch();
+        });
+        // Event handler for the AutoComplete's select event
+        $("#emailAutoComplete").data("kendoAutoComplete").bind("change", function (e) {
+            performSearch();
+        });
+        function performSearch() {
+            var searchText = $("#searchInput").val().trim();
+            var selectedPlace = $("#placeFilter").data("kendoDropDownList").value();
+            var selectedEmail = $("#emailAutoComplete").data("kendoAutoComplete").value();
+
+            $("#grid").data("kendoGrid").dataSource.read({
+                SearchText: searchText,
+                SelectedPlace: selectedPlace,
+                SelectedEmail: selectedEmail
+            });
+        }
+
+    });
+
+    function additionalData() {
+        debugger;
+        return {
+            SearchText: $("#searchInput").val(),
+            SelectedPlace: $("#placeFilter").data("kendoDropDownList").value(),
+            SelectedEmail: $("#emailAutoComplete").data("kendoAutoComplete").value()
+        };
+    }
+
+        // $("#searchInput").on("keydown", function (e) {
+            //     if (e.key === "Enter" && $(this).val().trim() !== "") {
+            //         var searchText = $(this).val().trim();
+            //         $("#grid").data("kendoGrid").dataSource.read({
+            //             SearchText: searchText,
+            //             additionalData: additionalData
+            //         });
+            //     }
+            // });
+
+            // $("#searchInput").on("keydown", function (e) {
+            //     if (e.key === "Enter" && $(this).val().trim() !== "") {
+            //         var searchText = $(this).val().trim();
+            //         var selectedPlace = this.value(); // Get selected place from the dropdown
+            //         $("#grid").data("kendoGrid").dataSource.read({
+            //             SearchText: searchText,
+            //             SelectedPlace: selectedPlace // Pass selected place as additional data
+            //         });
+            //     }
+            // });
+</script>
+

@@ -1,0 +1,110 @@
+﻿@model TelerikManager.Models.Manager;
+<div class="modal-header">
+    <h5>Edit ManagerData</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<form method="post" asp-controller="Managers" asp-action="Update">
+    <input type="hidden" asp-for="ID" />
+    <div class="form-group">
+        <div class="form-group col-md-6">
+            <label asp-for="Name">Name</label>
+            <input type="text" id="EditName" class="form-control mb-3" asp-for="Name" placeholder="Enter the Name " />
+                <span asp-validation-for="Name" class="alert-danger"></span>
+        </div>
+        <div class="form-group col-md-6">
+            <label asp-for="Email">Email</label>
+            <input type="email" id="EditEmail" class="form-control mb-3" asp-for="Email" placeholder="Enter the Email" />
+                <span asp-validation-for="Email" class="alert-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="form-group col-md-6">
+            <label asp-for="Phone">Phone</label>
+            <input type="number" id ="EditPhone" class="form-control mb-3" asp-for="Phone" placeholder="Enter the Phone" />
+                <span asp-validation-for="Phone" class="alert-danger"></span>
+        </div>
+        <div class="form-group col-md-6">
+            <label asp-for="Place">Place</label>
+            <input type="text" id="EditPlace" class="form-control mb-3" asp-for="Place" placeholder="Enter the Place" />
+                <span asp-validation-for="Place" class="alert-danger"></span>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" id="EditManagerBtn">Save changes</button>
+    </div>
+</form>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        $("#EditManagerBtn").click(function () {
+            var isValid = true;
+
+
+            // Reset any previous validation
+            $('.is-invalid').removeClass('is-invalid');
+            // $('.error-message').remove();
+
+
+
+            // Validate Name field
+            var nameField = $("#EditName");
+            if (nameField.val() === "") {
+                nameField.addClass("is-invalid");
+                // nameField.after('<span class="error-message">Name is required.</span>');
+                isValid = false;
+            }
+
+
+            // Validate Email field
+            var emailField = $("#EditEmail");
+            if (emailField.val() === "") {
+                emailField.addClass("is-invalid");
+                isValid = false;
+            }
+
+
+            // // Validate Phone field
+            // var phoneField = $("#Phone");
+
+            // if (phoneField.val() === "") {
+            //     phoneField.addClass("is-invalid");
+            //     isValid = false;
+            // }
+
+            var phoneField = $("#EditPhone");
+            if (phoneField.val().length != 10) {
+                phoneField.addClass("is-invalid");
+                isValid = false;
+            }
+
+
+            // Validate Place field
+            var placeField = $("#EditPlace");
+            if (placeField.val() === "") {
+                placeField.addClass("is-invalid");
+                isValid = false;
+            }
+
+
+
+            if (!isValid) {
+                // If form is invalid, prevent submission
+                return false;
+            }
+        });
+    });
+
+
+
+
+</script>
+<style>
+    .is-invalid {
+        border-color: #dc3545;
+    }
+
+</style>
