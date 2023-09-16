@@ -26,7 +26,14 @@ namespace TelerikManager.Controllers
 
             return Json(data.ToDataSourceResult(request));
        }
- 
+       //public ActionResult GetPlaces(string SearchText, string SelectedPlace)
+       // {
+       //     var places = ManagerData.GetAllManagerDetails(SearchText, SelectedPlace).Select(m => m.Place).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+       //     var placeList = places.Select(p => new { Text = p, Value = p });
+
+       //     return Json(placeList);
+       // }
+        //
         public ActionResult ReadPlace()
         {
             var data = ManagerData.GetPlaceList().ToList();
