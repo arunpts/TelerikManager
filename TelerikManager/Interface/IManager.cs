@@ -4,14 +4,18 @@ namespace TelerikManager.Interface
 {
     public interface IManager
     {
-        //GetAllRecord
+        //Get All Records
         List<Manager> GetAllManagerDetails(string SearchText, string SelectedPlace,string SelectedEmail);
-       // GETSingleRecord
-        Manager GetManagerDetails(int ID);
-        //Manager GetManagerDetails(int ID);
 
+        //Get Single Record
+        Manager GetManagerDetails(int ID);
+
+        //Get Distinct Places
         List<Manager> GetPlaceList();
+
+        //Get Distinct Emails
         List<Manager> GetEmailList();
+
         //Add Record
         Manager AddManagerDetails(Manager ObjManager);
 
